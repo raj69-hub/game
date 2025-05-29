@@ -1,2 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ninja Runner</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #111;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: #222;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="480" height="320"></canvas>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
 
-
+    const ninja = {
+      x: 50,
+      y: 260,
+      width: 30,
+      height: 30,
+      dy: 0,
+      gravity: 0.5,
+      jumpStrength: -10,
+      onGround: true
+    };
+
+    let obstacles = [];
+    let score = 0;
+    let gameOver = false;
+
+    function drawNinja() {
+      ctx.fillStyle = 'white';
+      ctx.fillRect(ninja.x, ninja.y, ninja.width, ninja.height);
+    }
+
+    function drawObstacles() {
+      ctx.fillStyle = 'red';
+      obstacles.forEach(obs => {
+        ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+      });
+    }
+
+    function updateObstacles() {
+      obstacles.forEach(obs => {
+        obs.x -= 2;
+      });
+
+      // Add new obstacle
+      if (obstacles.length === 0 || obstacles[obstacles.length - 1].x < canvas.width - 150) {
+        const height = 20 + Math.random() * 30;
+        obstacles.push({
+          x: canvas.width,
+          y: canvas.height - height,
+          width: 20,
+          height: height,
+          passed: false
+        });
+      }
+
+      // Remove off-screen obstacles & update score
+      if (obstacles.length > 0 && obstacles[0].x + obstacles[0].width < 0) {
+        obstacles.shift();
+      }
+
+      // Score update
+      obstacles.forEach(obs => {
+        if (!obs.passed && obs.x + obs.width < ninja.x) {
+          obs.passed = true;
+          score++;
+        }
+      });
+    }
+
+    function checkCollision() {
+      for (let obs of obstacles) {
+        if (
+          ninja.x < obs.x + obs.width &&
+          ninja.x + ninja.width > obs.x &&
+          ninja.y < obs.y + obs.height &&
+          ninja.y + ninja.height > obs.y
+        ) {
+          gameOver = true;
+        }
+      }
+    }
+
+    function drawGameOver() {
+      ctx.fillStyle = 'white';
+      ctx.font = '30px Arial';
+      ctx.fillText('Game Over!', canvas.width / 2 - 80, canvas.height / 2);
+      ctx.font = '20px Arial';
+      ctx.fillText('Score: ' + score, canvas.width / 2 - 40, canvas.height / 2 + 30);
+    }
+
+    function update() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (gameOver) {
+        drawNinja();
+        drawObstacles();
+        drawGameOver();
+        return;
+      }
+
+      // Update ninja
+      ninja.dy += ninja.gravity;
+      ninja.y += ninja.dy;
+
+      if (ninja.y + ninja.height >= canvas.height) {
+        ninja.y = canvas.height - ninja.height;
+        ninja.dy = 0;
+        ninja.onGround = true;
+      } else {
+        ninja.onGround = false;
+      }
+
+      // Update game
+      update
+
